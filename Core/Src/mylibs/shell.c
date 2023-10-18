@@ -6,7 +6,8 @@
  */
 #include "usart.h"
 #include "mylibs/shell.h"
-#include "tim.h"
+#include "main.h"
+#include "set_motor_speed.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -92,12 +93,10 @@ void Shell_Loop(void){
 			HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
 			HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 			HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 512);
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 512);
-//			speed = 50;
+			set_motor_speed(50);
 		}
 		else if(strcmp(argv[0],"stop")==0){
-			speed = 50;
+			set_motor_speed(50);
 			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 			HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_1);
 			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
@@ -107,14 +106,14 @@ void Shell_Loop(void){
 			if(atoi(argv[1])>MAX_SPEED_HIGH) {
 				int uartTxStringLength = snprintf((char *)uartTxBuffer, UART_TX_BUFFER_SIZE, "Input speed superior to maximum speed.\r\n");
 				HAL_UART_Transmit(&huart2, uartTxBuffer, uartTxStringLength, HAL_MAX_DELAY);
-				speed = MAX_SPEED_HIGH;
+				set_motor_speed(MAX_SPEED_HIGH);
 			}
 			if(atoi(argv[1])<MAX_SPEED_LOW) {
 				int uartTxStringLength = snprintf((char *)uartTxBuffer, UART_TX_BUFFER_SIZE, "Input speed superior to maximum speed.\r\n");
 				HAL_UART_Transmit(&huart2, uartTxBuffer, uartTxStringLength, HAL_MAX_DELAY);
-				speed = MAX_SPEED_LOW;
+				set_motor_speed(MAX_SPEED_LOW);
 			}
-			speed = atoi(argv[1]); // speed is a number between 0 and 100
+			set_motor_speed(atoi(argv[1])); // speed is a number between 0 and 100
 		}
 		else{
 			HAL_UART_Transmit(&huart2, cmdNotFound, sizeof(cmdNotFound), HAL_MAX_DELAY);

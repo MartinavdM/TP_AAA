@@ -31,7 +31,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32g4xx_hal_tim.h"
+#include "tim.h"
+#include "set_motor_speed.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

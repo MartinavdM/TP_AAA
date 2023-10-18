@@ -6,18 +6,17 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "set_motor_speed.h"
+#include "main.h"
 
 /**
-  * @brief  The function that calls PWM functions.
+  * @brief  The function that calls PWM functions. "speed" is a percentage
   * @retval none
   */
 
-void set_motor_motor_speed(uint32_t speed) {
-	targeted_duty_cycle1 = speed*0.01*COUNTER_PERIOD;
-	targeted_duty_cycle2 = (COUNTER_PERIOD-targeted_duty_cycle1);
+void set_motor_speed(int speed) {
+	uint32_t current_duty_cycle1 = 512; // The motor is initialized at a duty cylce of 50 % to start at null speed
+	uint32_t current_duty_cycle2 = 511;
+	uint32_t targeted_duty_cycle1 = speed*0.01*COUNTER_PERIOD;
 	while(current_duty_cycle1 < targeted_duty_cycle1) {
 		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, current_duty_cycle1);
 		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, current_duty_cycle2);

@@ -37,7 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define COUNTER_PERIOD 1023
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,14 +48,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t current_duty_cycle1 = 512;
-uint32_t current_duty_cycle2 = 512;
-uint32_t targeted_duty_cycle1;
-uint32_t targeted_duty_cycle2;
 uint32_t timeout = 100;
 uint32_t U_adc_value;
-uint32_t V_adc_value;
-extern uint32_t speed;
 extern uint32_t ADC_buffer[ADC_BUF_SIZE];
 extern uint8_t flag;
 uint32_t counter = 0;
@@ -108,7 +102,6 @@ int main(void)
   MX_TIM3_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_TIM2_Init();
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 	Shell_Init();
@@ -122,18 +115,16 @@ int main(void)
 		//Error_Handler();
 	// HAL_ADC_Start (&hadc1); // Conversion by polling
 	//HAL_ADC_PollForConversion (&hadc1,timeout);
-
 	//U_adc_value = HAL_ADC_GetValue (&hadc1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-
 		//		HAL_ADC_ConvCpltCallback(&hadc1);
 		Shell_Loop();
-//
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
