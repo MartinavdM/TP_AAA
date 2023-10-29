@@ -8,9 +8,8 @@
 #ifndef INC_SET_MOTOR_SPEED_H_
 #define INC_SET_MOTOR_SPEED_H_
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "main.h"
 #define COUNTER_PERIOD 1023
-void set_motor_speed(int speed);
+void set_motor_speed(int);
 
 #endif /* INC_SET_MOTOR_SPEED_H_ */

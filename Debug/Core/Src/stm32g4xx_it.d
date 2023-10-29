@@ -32,6 +32,9 @@ Core/Src/stm32g4xx_it.o: ../Core/Src/stm32g4xx_it.c ../Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
  ../Core/Inc/tim.h ../Core/Inc/main.h ../Core/Inc/set_motor_speed.h \
+ ../Core/Inc/compute_current.h ../Core/Inc/usart.h \
+ ../Core/Inc/mylibs/shell.h ../Core/Inc/compute_speed.h \
+ ../Core/Inc/speed_enslavement.h ../Core/Inc/current_enslavement.h \
  ../Core/Inc/stm32g4xx_it.h
 ../Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
@@ -69,4 +72,10 @@ Core/Src/stm32g4xx_it.o: ../Core/Src/stm32g4xx_it.c ../Core/Inc/main.h \
 ../Core/Inc/tim.h:
 ../Core/Inc/main.h:
 ../Core/Inc/set_motor_speed.h:
+../Core/Inc/compute_current.h:
+../Core/Inc/usart.h:
+../Core/Inc/mylibs/shell.h:
+../Core/Inc/compute_speed.h:
+../Core/Inc/speed_enslavement.h:
+../Core/Inc/current_enslavement.h:
 ../Core/Inc/stm32g4xx_it.h:

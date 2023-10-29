@@ -1,19 +1,11 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file           : main.c
- * @brief          : Main program body
- ******************************************************************************
- * @attention
+ * \file main.c
+ * \brief Ce fichier contient une procédure de remplissage d'une table "speed_table" qui permet de "filtrer" les valeurs mesurées de la vitesse du moteur. Il contient aussi deux callbacks dans le USER CODE n°4 qui permettent de remplir le buffer où est stockée la valeur de la tension image du courant ainsi que de calculer le nombre de tours effectués par le moteur à un instanté.
+ * \author Paul-Etienne Rétaux
+ * \date 30 octobre 2023
  *
- * Copyright (c) 2023 STMicroelectronics.
- * All rights reserved.
  *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -48,13 +40,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint32_t timeout = 100;
-uint32_t U_adc_value;
-extern uint32_t ADC_buffer[ADC_BUF_SIZE];
-extern uint8_t flag;
+uint32_t timeout = 100; //
+float number_of_rotations = 0.0;
 uint32_t counter = 0;
-int16_t signed_counter = 0;
-extern uint32_t time_step;
+uint32_t count = 0;
+float speed_table[100];
+uint32_t ADC_buffer[ADC_BUF_SIZE];
+uint8_t current_flag = 0; // flag used for the current computation callback
+uint8_t speed_flag = 0; // flag used for the speed computation callback
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,6 +68,9 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	for(int i=0;i<100;i++){
+		speed_table[i] = 0.0; // speed_table is used for computing a mean speed
+	}
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -105,26 +101,22 @@ int main(void)
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 	Shell_Init();
-	if(HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
+	if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
 		Error_Handler();
-	if(HAL_ADC_Start_DMA(&hadc1, ADC_buffer, ADC_BUF_SIZE) != HAL_OK)
+	if (HAL_ADC_Start_DMA(&hadc1, ADC_buffer, ADC_BUF_SIZE) != HAL_OK)
 		Error_Handler();
-	if(HAL_TIM_Encoder_Start_IT(&htim3,TIM_CHANNEL_ALL) != HAL_OK)
+//	if(HAL_TIM_Base_Start(&htim3) != HAL_OK)
+//		Error_Handler();
+	if (HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL) != HAL_OK)
 		Error_Handler();
-	//if(HAL_TIM_Base_Start(&htim1) != HAL_OK)
-		//Error_Handler();
-	// HAL_ADC_Start (&hadc1); // Conversion by polling
-	//HAL_ADC_PollForConversion (&hadc1,timeout);
-	//U_adc_value = HAL_ADC_GetValue (&hadc1);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{
-		//		HAL_ADC_ConvCpltCallback(&hadc1);
+	while (1) {
 		Shell_Loop();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -178,34 +170,26 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	//			if(HAL_ADC_Stop_DMA(&hadc1) != HAL_OK)
 	//				Error_Handler();
-	flag = 1;
+	current_flag = 1;
 }
 
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM3) {
+		counter = __HAL_TIM_GET_COUNTER(htim);
+//			count = (int16_t) counter;
+		if (__HAL_TIM_IS_TIM_COUNTING_DOWN(htim)) {
+			count = COUNTER_ARR - counter;
+		} else {
+			count = counter;
+		}
+		number_of_rotations = (count + 0.0) / 4096;
+		speed_flag = 1;
+	}
+}
 /* USER CODE END 4 */
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -216,8 +200,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-	while (1)
-	{
+	while (1) {
 	}
   /* USER CODE END Error_Handler_Debug */
 }

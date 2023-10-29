@@ -1,20 +1,12 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32g4xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ * \file stm32g4xx_it.c
+ * \brief Ce fichier contient les fonctions d'interruption et en particulier la SysTick_Handler qui permet de calculer la vitesse et d'appeler la fonction d'asservissement en vitesse toutes les 100 ms et la TIM7_DAC_IRQHandler qui permet d'appeler la fonction d'asservissement en courant toutes les 0.5*10^(-4) s.
+ * \author Paul-Etienne Rétaux
+ * \date 30 octobre 2023
+ *
+ *
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -22,6 +14,7 @@
 #include "stm32g4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,7 +34,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-uint32_t time_step;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -51,7 +44,13 @@ uint32_t time_step;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern float number_of_rotations;
+float measured_speed = 0.0;
+float filtered_measured_speed = 0.0;
+int indx = 0;
+int i_speed_table = 0;
+extern float speed_table[100];
+uint8_t wait_flag = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -60,8 +59,6 @@ extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim7;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
-extern TIM_HandleTypeDef htim6;
-
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -78,9 +75,8 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-  while (1)
-  {
-  }
+	while (1) {
+	}
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -189,9 +185,23 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
+	indx++;
+	if (indx == 50)
+		wait_flag = 1;
+	if (indx == 100) {
+		indx = 0;
+		measured_speed = number_of_rotations * 10 * 60; // in rpm
+		number_of_rotations = 0.0;
+		speed_table[i_speed_table] = measured_speed;
+		i_speed_table++;
+		if (i_speed_table == 99)
+			i_speed_table = 0;
+		filtered_measured_speed = compute_speed(speed_table);
 
+		speed_enslavement();
+	}
   /* USER CODE END SysTick_IRQn 0 */
-
+  HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -275,26 +285,12 @@ void EXTI15_10_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM6 global interrupt, DAC1 and DAC3 channel underrun error interrupts.
-  */
-void TIM6_DAC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-
-  /* USER CODE END TIM6_DAC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim6);
-  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
-
-  /* USER CODE END TIM6_DAC_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM7 global interrupt, DAC2 and DAC4 channel underrun error interrupts.
   */
 void TIM7_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
-
+	current_enslavement();
   /* USER CODE END TIM7_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim7);
   /* USER CODE BEGIN TIM7_DAC_IRQn 1 */

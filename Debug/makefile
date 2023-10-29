@@ -62,7 +62,7 @@ main-build: NUCLEO-G474RET6-Inverter_Pinout.elf secondary-outputs
 
 # Tool invocations
 NUCLEO-G474RET6-Inverter_Pinout.elf NUCLEO-G474RET6-Inverter_Pinout.map: $(OBJS) $(USER_OBJS) C:\Users\peret\Documents\4A\TP_actionneurs_et_automatique_appliquee\NUCLEO-G474RET6-Inverter_Pinout\TP_AAA\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "NUCLEO-G474RET6-Inverter_Pinout.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\peret\Documents\4A\TP_actionneurs_et_automatique_appliquee\NUCLEO-G474RET6-Inverter_Pinout\TP_AAA\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NUCLEO-G474RET6-Inverter_Pinout.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "NUCLEO-G474RET6-Inverter_Pinout.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\peret\Documents\4A\TP_actionneurs_et_automatique_appliquee\NUCLEO-G474RET6-Inverter_Pinout\TP_AAA\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="NUCLEO-G474RET6-Inverter_Pinout.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

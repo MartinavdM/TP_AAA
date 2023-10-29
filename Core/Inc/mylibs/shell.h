@@ -16,8 +16,9 @@
 #define ASCII_CR 0x0D			// CR = carriage return, retour chariot
 #define ASCII_BACK 0x08		// BACK = Backspace
 #define ADC_BUF_SIZE 1
-#define MAX_SPEED_LOW 40
-#define MAX_SPEED_HIGH 60
+#define MAX_SPEED_LOW 20
+#define MAX_SPEED_HIGH 80
+#define COUNTER_ARR 65535
 
 void Shell_Init(void);
 void Shell_Loop(void);
