@@ -1,5 +1,59 @@
-Séance 1 : Commande MCC basique 
-  Génération de 4 PWMs
-  Pour ce faire, nous avons utilisé une commande complémentaire décalée avec des temps morts supérieurs à 74 ns, conformément à la datasheet des transistors : 
-https://www.mouser.fr/datasheet/2/196/Infineon_IRF540N_DataSheet_v01_01_EN-3166033.pdf 
-Les PWMs sont réglés relativement à un rapport cyclique symbolisé par une valeur sur 10 bits comprise entre 0 et 1023. La fréquence est de 20 kHz.
+*****Séance 1 : Commande MCC basique *********
+
+--------Génération de 4 PWMs------------
+Pour ce faire, nous avons utilisé une commande complémentaire décalée avec des temps morts supérieurs à 500 ns, conformément à la datasheet des bras du hacheur : 
+https://docs.rs-online.com/551b/0900766b8163d64c.pdf
+Les PWMs sont réglés relativement à un rapport cyclique symbolisé par une valeur sur 10 bits comprise entre 0 et 1023 (0 : 0 %; 1023 : 100 %). La fréquence est de 20 kHz.
+
+-------Commande de vitesse-------------
+Afin de contrôler la vitesse du moteur à l'aide de la commande "speed" du shell, nous utilisons la fonction "atoi()" qui permet de convertir l'argument de la 
+commande speed, une suite de caractères ASCII, en un entier.
+Cet entier est un pourcentage qui doit être compris entre 20 et 80 afin de ne pas faire tourner le moteur trop rapidement (et ainsi d'éviter les appels de courant, 
+nuisibles au hacheur quatre cadrants).
+Ce pourcentage est utilisé comme argument d'une fonction set_motor_speed qui utilise des fonctions de génération de PWM de la bibliothèque HAL.
+
+---------Premiers tests---------
+Pour éviter les appels "brutaux" de courant liés à un démarrage ou à un arrêt trop bref du moteur, nous incrémentons progressivement le rapport cyclique 
+avant d'arriver à celui désiré par l'utilisateur. Comme le rapport cyclique à un instanté (qui évolue pour atteindre celui entré par l'utilisateur) est initialisé à 511 (soit 50 %), il faut que ce soit une variable globale. Ainsi, à chaque nouvel appel de "speed", le rapport cyclique est incrémenté ou décrémenté à partir de l'ancien. Cela évite de repasser par une vitesse nulle du moteur.
+
+
+
+********* Séance 2 : Commande en boucle ouverte, mesure de vitesse et de courant **************
+
+-------Commande de vitesse (suite)-------------
+Nous ajoutons deux commandes à notre shell : 
+- "start" qui active les PWMs (fonction HAL_TIM_PWM_Start) et règle le rapport cyclique du hacheur à 50 % (vitesse nulle)
+- "stop" qui remet le rapport cyclique du hacheur à 50 % avant de désactiver les signaux de PWMs (fonction HAL_TIM_PWM_Stop).
+
+------Mesure du courant------------
+Grâce à la datasheet des capteurs de courant :
+https://www.farnell.com/datasheets/3454255.pdf 
+nous déterminons la fonction de transfert qui lie la tension relevée par ces capteurs et le courant qui passe dans les capteurs :
+current = (voltage*3300.0/4096-1650)/50
+
+"voltage" arrive sur la pin n°PA1 du STM32, laquelle est interfacée à un ADC. Au début, nous commençons par une convesrion en polling, la plus simple. Ensuite, nous configurons le DMA du Timer 1 pour qu'une fin de comptage par le timer 1 déclenche une récupération de la valeur convertie. Ainsi, le processeur peut travailler pendant la conversion (qui prend un temps non négligeable).
+L'utilisation de ce timer permet d'obtenir des mesures synchrones avec les signaux de commande, ce qui permet de récupérer une valeur moyenne du courant, de forme triangulaire.
+
+--------Mesure de vitesse-------
+Nous utilisons le Timer n°3 en mode encodeur : ses canaux sont reliés aux pins PA4 et PA6 et voient des signaux carrés déphasés de PI/2 générés par les deux roues crantées de l'encodeur du moteur. Le timer compte ou décompte (en fonction du sens de rotation) à chaque front montant et à chaque front descendant. Comme il y a deux roues de 1024 dents, un tour correspond à 4096 incrémentations/décrémentations.
+Ainsi, pour mesurer la vitesse, il faut utiliser la fonction __HAL_TIM_GET_COUNTER dans la callback HAL_TIM_IC_CaptureCallback pour mettre à jour un compteur que l'on divise par 4096 et que l'on multiplie ensuite par 10 toutes les 100 ms. Cela donne la vitesse en tours/s.
+
+
+
+************** Séance 3 : Asservissement ********
+
+Un moteur à courant continu subit deux asservissements : l'un en vitesse et l'autre en courant. 
+Implémenter un correcteur en informatique nécessite d'utiliser la transformée bilinéaire qui permet de passer de la transformée de Laplace à celle en Z :
+1/p = 
+T_e      1 + z^(-1)
+____ *  ____________
+2        1 - z^(-1)
+Nous commençons par l'asservissement en vitesse qui consiste en une boucle de rétroaction où l'erreur en vitesse est présentée à l'entrée d'un correcteur PI, lequel sort un courant de consigne. 
+
+L'asservissement en courant compare le courant de consigne (issu du dernier correcteur) et le courant mesuré. L'erreur est présentée à l'entrée d'un correcteur PI qui sort un rapport cyclique de consigne.
+
+Une fois le rapport cyclique calculé, celui-ci remplacera la consigne obtenue grâce à la commande "speed".
+
+*********Conclusion **********
+
+Ce TP nous a donc permis de savoir comment piloter un moteur à courant continu à l'aide d'un shell. Nous avons pu implémenter deux correcteurs proportionnels intégraux qui asservissent le moteur en courant et en tension. Nous avons pris garde de limiter les démarrages ou arrêts trop brefs du moteur.
