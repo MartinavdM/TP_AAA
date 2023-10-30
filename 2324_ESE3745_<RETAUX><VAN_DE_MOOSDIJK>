@@ -1,3 +1,5 @@
 Séance 1 : Commande MCC basique 
   Génération de 4 PWMs
-  Pour ce faire, nous avons utilisé une commande complémentaire décalé avec des temps morts de 
+  Pour ce faire, nous avons utilisé une commande complémentaire décalée avec des temps morts supérieurs à 74 ns, conformément à la datasheet des transistors : 
+https://www.mouser.fr/datasheet/2/196/Infineon_IRF540N_DataSheet_v01_01_EN-3166033.pdf 
+Les PWMs sont réglés relativement à un rapport cyclique symbolisé par une valeur sur 10 bits comprise entre 0 et 1023. La fréquence est de 20 kHz.
