@@ -52,7 +52,7 @@ Nous commençons par l'asservissement en vitesse qui consiste en une boucle de r
 
 L'asservissement en courant compare le courant de consigne (issu du dernier correcteur) et le courant mesuré. L'erreur est présentée à l'entrée d'un correcteur PI qui sort un rapport cyclique de consigne.
 
-Une fois le rapport cyclique calculé, celui-ci remplacera la consigne obtenue grâce à la commande "speed".
+Une fois le rapport cyclique calculé, celui-ci remplacera la consigne obtenue grâce à la commande "speed". La fonction d'asservissement en vitesse est appelée toutes les 100 ms grâce à SysTickHandler et celle en courant toutes les 0.5*10^(-4) s grâce à TIM7_IRQ_Handler (le TIM7 n'a pas son ARR configuré à cause d'une erreur GitHub. Sera-t-il possible de le mettre à 50 vous-même s'il vous plaît ?)
 
 *********Conclusion **********
 
